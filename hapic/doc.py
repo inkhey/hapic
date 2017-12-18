@@ -20,22 +20,22 @@ def bottle_generate_operations(
 
     # schema based
     if description.input_body:
-        schema_class = type(description.input_body.wrapper.processor.schema)
+        schema = description.input_body.wrapper.processor.schema
         method_operations.setdefault('parameters', []).append({
             'in': 'body',
             'name': 'body',
             'schema': {
-                '$ref': '#/definitions/{}'.format(schema_class.__name__)
+                '$ref': '#/definitions/{}'.format(generate_schema_name(schema))
             }
         })
 
     if description.output_body:
-        schema_class = type(description.output_body.wrapper.processor.schema)
+        schema = description.output_body.wrapper.processor.schema
         method_operations.setdefault('responses', {})\
             [int(description.output_body.wrapper.default_http_code)] = {
                 'description': str(description.output_body.wrapper.default_http_code),  # nopep8
                 'schema': {
-                    '$ref': '#/definitions/{}'.format(schema_class.__name__)
+                    '$ref': '#/definitions/{}'.format(generate_schema_name(schema))
                 }
             }
 
@@ -55,15 +55,15 @@ def bottle_generate_operations(
                 [int(error.wrapper.http_code)] = {
                     'description': str(error.wrapper.http_code),
                     'schema': {
-                        '$ref': '#/definitions/{}'.format(schema_class.__name__)  # nopep8
+                        '$ref': '#/definitions/{}'.format(generate_schema_name(schema))  # nopep8
                     }
                 }
 
     # jsonschema based
     if description.input_path:
-        schema_class = type(description.input_path.wrapper.processor.schema)
+        schema = description.input_path.wrapper.processor.schema
         # TODO: look schema2parameters ?
-        jsonschema = schema2jsonschema(schema_class, spec=spec)
+        jsonschema = schema2jsonschema(schema, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append({
                 'in': 'path',
@@ -73,8 +73,8 @@ def bottle_generate_operations(
             })
 
     if description.input_query:
-        schema_class = type(description.input_query.wrapper.processor.schema)
-        jsonschema = schema2jsonschema(schema_class, spec=spec)
+        schema = description.input_query.wrapper.processor.schema
+        jsonschema = schema2jsonschema(schema, spec=spec)
         for name, schema in jsonschema.get('properties', {}).items():
             method_operations.setdefault('parameters', []).append({
                 'in': 'query',
@@ -124,26 +124,26 @@ class DocGenerator(object):
             description = controller.description
 
             if description.input_body:
-                schemas.append(type(
+                schemas.append(
                     description.input_body.wrapper.processor.schema
-                ))
+                )
 
             if description.input_forms:
-                schemas.append(type(
+                schemas.append(
                     description.input_forms.wrapper.processor.schema
-                ))
+                )
 
             if description.output_body:
-                schemas.append(type(
+                schemas.append(
                     description.output_body.wrapper.processor.schema
-                ))
+                )
 
             if description.errors:
                 for error in description.errors:
-                    schemas.append(type(error.wrapper.schema))
+                    schemas.append(error.wrapper.schema)
 
         for schema in set(schemas):
-            spec.definition(schema.__name__, schema=schema)
+            spec.definition(generate_schema_name(schema), schema=schema)
 
         # add views
         # with app.test_request_context():
@@ -178,4 +178,9 @@ class DocGenerator(object):
 
 # TODO BS 20171109: Must take care of already existing definition names
 def generate_schema_name(schema):
-    return schema.__name__
+    name = type(schema).__name__
+    if hasattr(schema,'exclude') and schema.exclude:
+        name +=  "-"+str(schema.exclude)
+    if hasattr(schema,'only') and schema.only:
+        name += str(schema.only)
+    return name
