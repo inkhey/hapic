@@ -4,9 +4,10 @@ from http import HTTPStatus
 
 import bottle
 import time
-from datetime import datetime
 
-from example.fake_api.model import User
+from example.fake_api.data import EXAMPLE_USER
+from example.fake_api.data import EXAMPLE_API_INFOS
+from example.fake_api.data import EXAMPLE_LIST_USER
 from hapic import Hapic
 from example.fake_api.schema import *
 from hapic.data import HapicData
@@ -22,10 +23,7 @@ class BottleController(object):
         """
         General information about this API.
         """
-        return {
-            'version': '1.2.3',
-            'datetime': datetime(2017, 12, 7, 10, 55, 8, 488996),
-        }
+        return EXAMPLE_API_INFOS
 
     @hapic.with_api_doc()
     @hapic.output_body(ListsUserSchema())
@@ -33,23 +31,7 @@ class BottleController(object):
         """
         Obtain users list.
         """
-        some_user = User(
-            id=4,
-            username='some_user',
-            display_name='Damien Accorsi',
-            company='Algoo',
-        )
-        return {
-            'item_nb': 1,
-            'items': [
-                some_user,
-            ],
-            'pagination': {
-                'first_id': 0,
-                'last_id': 5,
-                'current_id': 0,
-            }
-        }
+        return EXAMPLE_LIST_USER
 
     @hapic.with_api_doc()
     @hapic.input_path(UserPathSchema())
@@ -58,34 +40,19 @@ class BottleController(object):
         """
         Obtain one user
         """
-        return {
-             'id': 4,
-             'username': 'some_user',
-             'email_address': 'some.user@hapic.com',
-             'first_name': 'Damien',
-             'last_name': 'Accorsi',
-             'display_name': 'Damien Accorsi',
-             'company': 'Algoo',
-        }
+        return EXAMPLE_USER
 
     @hapic.with_api_doc()
     # TODO - G.M - 2017-12-5 - Support input_forms ?
     # TODO - G.M - 2017-12-5 - Support exclude, only ?
-    @hapic.input_body(UserSchema(exclude=('id',)))
+    # @hapic.input_body(NumberedUserSchema(exclude=('id',)))
+    @hapic.input_body(UnumberedUserSchema())
     @hapic.output_body(UserSchema())
     def add_user(self, hapic_data: HapicData):
         """
         Add new user
         """
-        return {
-             'id': 4,
-             'username': 'some_user',
-             'email_address': 'some.user@hapic.com',
-             'first_name': 'Damien',
-             'last_name': 'Accorsi',
-             'display_name': 'Damien Accorsi',
-             'company': 'Algoo',
-        }
+        return EXAMPLE_USER
 
     @hapic.with_api_doc()
     @hapic.output_body(NoContentSchema(),

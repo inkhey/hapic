@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import marshmallow
 
+
 class NoContentSchema(marshmallow.Schema):
     pass
+
 
 class AboutResponseSchema(marshmallow.Schema):
     version = marshmallow.fields.String(required=True,)
@@ -16,8 +18,7 @@ class UserPathSchema(marshmallow.Schema):
     )
 
 
-class UserSchema(marshmallow.Schema):
-    id = marshmallow.fields.Int(required=True)
+class UnumberedUserSchema(marshmallow.Schema):
     username = marshmallow.fields.String(
         required=True,
         validate = marshmallow.validate.Regexp(regex='[\w-]+'),
@@ -27,6 +28,10 @@ class UserSchema(marshmallow.Schema):
     last_name = marshmallow.fields.String(required=True)
     display_name = marshmallow.fields.String(required=True)
     company = marshmallow.fields.String(required=True)
+
+
+class UserSchema(UnumberedUserSchema):
+    id = marshmallow.fields.Int(required=True)
 
 
 class PaginationSchema(marshmallow.Schema):
