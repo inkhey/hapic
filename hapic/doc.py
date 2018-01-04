@@ -3,6 +3,7 @@ import typing
 
 from apispec import APISpec
 from apispec import Path
+from apispec import AutoReferencingStrategy
 from apispec.ext.marshmallow.swagger import schema2jsonschema
 
 from hapic.context import ContextInterface
@@ -116,6 +117,7 @@ class DocGenerator(object):
                 'apispec.ext.marshmallow',
             ),
             schema_name_resolver=generate_schema_name,
+            auto_referencing_strategy= AutoReferencingStrategy.BasedOnDefinitionName
         )
 
         schemas = []
@@ -178,9 +180,12 @@ class DocGenerator(object):
 
 # TODO BS 20171109: Must take care of already existing definition names
 def generate_schema_name(schema):
-    name = type(schema).__name__
-    if hasattr(schema,'exclude') and schema.exclude:
-        name +=  "-"+str(schema.exclude)
-    if hasattr(schema,'only') and schema.only:
-        name += str(schema.only)
-    return name
+    if isinstance(schema, type):
+        return schema.__name__
+    else :
+        name = type(schema).__name__
+        if hasattr(schema,'exclude') and schema.exclude:
+            name +=  "-"+str(schema.exclude)
+        if hasattr(schema,'only') and schema.only:
+            name += str(schema.only)
+        return name
